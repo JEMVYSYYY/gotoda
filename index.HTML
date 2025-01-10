@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODA Schedule and Fares</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            background-image: url('bg.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            color: white;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            background-color: rgba(1, 9, 17, 0.8);
+            padding: 1rem 2rem;
+            color: white;
+        }
+
+        header img {
+            width: 30%;
+            height: 40%;
+            margin-right: 1rem;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            background: rgba(0, 102, 204, 0.8);
+            color: white;
+            padding: 0.5rem 0;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-size: 1.1rem;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        footer {
+            background: rgba(0, 71, 171, 0.8);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        #fares {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 800px;
+    margin: 2rem auto;
+    color: white;
+}
+
+#fares h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    color: #f8f8f8;
+    text-align: center;
+}
+
+#fares p {
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+#fares select {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 1rem 0;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #222;
+    color: white;
+    transition: border-color 0.3s ease;
+}
+
+#fares select:focus {
+    border-color: #00aaff;
+    outline: none;
+}
+
+#fares button {
+    padding: 0.8rem 2rem;
+    background-color: #00aaff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+#fares button:hover {
+    background-color: #0088cc;
+}
+
+#fareResult {
+    margin-top: 2rem;
+    background: #333;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    display: none;
+}
+
+#fareResult h3 {
+    font-size: 1.6rem;
+    color: #00aaff;
+    margin-bottom: 1rem;
+}
+
+#fareResult p {
+    font-size: 1.2rem;
+    color: white;
+    line-height: 1.6;
+}
+
+#fareResult p strong {
+    color: #00aaff;
+}
+
+    </style>
+    <script>
+        function switchContent(sectionId) {
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            const activeSection = document.getElementById(sectionId);
+            if (activeSection) activeSection.classList.add('active');
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <img src="log.png" alt="TODA Logo">
+        <h1>TODA RIDE</h1>
+    </header>
+
+    <nav>
+        <a href="#" onclick="switchContent('schedule')">Schedule</a>
+        <a href="#" onclick="switchContent('fares')">Fares</a>
+    </nav>
+
+    <div class="container">
+        <section id="schedule" class="content active">
+            <h2>TODA Schedules</h2>
+            <p>Select a location to view available TODA terminals and schedules:</p>
+            
+            <!-- Dropdown for selecting location -->
+            <label for="location">Choose a location:</label>
+            <select id="location" onchange="showTerminals()">
+                <option value="">-- Select Location --</option>
+                <option value="qc">Quezon City</option>
+                <option value="caloocan">Caloocan</option>
+                <option value="Calapan">Calapan</option>
+            </select>
+        
+            <!-- Container for displaying terminals -->
+            <div id="terminals-container" style="margin-top: 1rem; display: none;">
+                <h3>Available Terminals:</h3>
+                <div id="terminals"></div>
+            </div>
+        
+            <!-- Terminal schedules -->
+            <div id="terminal-info" style="margin-top: 1rem; display: none;">
+                <h3>Terminal Information:</h3>
+                <div id="terminal-details"></div>
+            </div>
+        </section>
+
+        <section id="fares" class="content">
+            
+            <h2>TODA Fares</h2>
+            <p>Select your destination and passenger type to view the fare:</p>
+        
+            <label for="destination">Choose your barangay or sitio:</label>
+            <select id="destination">
+                <option value="">-- Select Destination --</option>
+                <option value="San Rafael">San Rafael</option>
+                <option value="SR Villa Rosario">SR Villa Rosario</option>
+                <option value="SR Toog (lower)">SR Toog (lower)</option>
+                <option value="SR Toog (upper)">SR Toog (upper)</option>
+                <option value="SR Bintulagan">SR Bintulagan</option>
+                <option value="Boundary/Morente">Boundary/Morente</option>
+                <option value="SR Dike">SR Dike</option>
+                <option value="Happy Valley Upper">Happy Valley Upper</option>
+                <option value="Happy Valley Lower">Happy Valley Lower</option>
+                <option value="Maraska">Maraska</option>
+                <option value="San Vicente">San Vicente</option>
+                <!-- Add other destinations here -->
+            </select>
+        
+            <label for="passengerType">Select Passenger Type:</label>
+            <select id="passengerType">
+                <option value="">-- Select Passenger Type --</option>
+                <option value="Regular">Regular</option>
+                <option value="Student">Student</option>
+                <option value="Senior Citizen">Senior Citizen</option>
+                <option value="PWD">PWD</option>
+            </select>
+        
+            <button onclick="calculateFare()">Show Fare</button>
+        
+            <div id="fareResult" style="margin-top: 1rem; display: none;">
+                <h3>Fare Details:</h3>
+                <p id="fareDetails"></p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const terminalsData = {
+            qc: [
+                {
+                    name: "Riverside Toda Office",
+                    location: "M3VH+JG7, Adarna St, Quezon City, Metro Manila",
+                    hours: null,
+                    rating: "⭐⭐⭐⭐⭐",
+                },
+                {
+                    name: "Riverside Toda Tricycle Terminal",
+                    location: "1127 118, 319a Commonwealth Ave, Quezon City, 1127 Metro Manila",
+                    hours: "9:00 AM to 5:00 PM",
+                    rating: "⭐⭐⭐⭐",
+                },
+                {
+                    name: "West Fairview Toda",
+                    location: "Dahlia Avenue, Fairview, Fairview South, 1122 Quezon City, Metro Manila",
+                    hours: null,
+                    rating: "⭐⭐⭐",
+                },
+                {
+                    name: "Drip Toda Terminal",
+                    location: "45 Petronia St, Quezon City, Metro Manila",
+                    hours: null,
+                    rating: "⭐⭐",
+                },
+                {
+                    name: "Luzon TODA",
+                    location: "3-5 Luzon Ave, Quezon City, Metro Manila",
+                    hours: null,
+                    rating: "⭐⭐⭐⭐",
+                },
+               
+            ],
+            caloocan: [
+                {
+                    name: "SV Toda Terminal",
+                    location: "16, 1422 Malaria Rd, Caloocan, Metro Manila",
+                    hours: "Open 24 hours",
+                    rating: "⭐⭐⭐⭐⭐",
+                },
+                {
+                    name: "Phase 5 Tricycle Operator Driver Association Toda",
+                    location: "Phase 12 Kaagapay Rd, Caloocan, Metro Manila",
+                    hours: null,
+                    rating: "⭐⭐⭐⭐⭐",
+                },
+                {
+                    name: "Phase 1 Sto Niño",
+                    location: "Q2GV+RV4, Langit Rd, Caloocan, Metro Manila",
+                    hours: "5:45 AM to 10:00 PM",
+                    rating: "⭐⭐⭐⭐⭐",
+                },
+                {
+                    name: "BSR Toda",
+                    location: "209 Deparo Rd, Caloocan, 1400 Metro Manila",
+                    hours: null,
+                    rating: "⭐⭐⭐⭐⭐",
+                },
+                {
+                    name: "Basideco Toda Terminal Derecho Tulay",
+                    location: "43 Langit Rd, Caloocan, Metro Manila",
+                    hours: "5:45 AM to 10:00 PM",
+                    rating: "⭐⭐⭐⭐⭐",
+                },
+                 {
+                    name: "CAPTODA",
+                    location: "Near Capitol Medical Center, Quezon Avenue, Quezon City",
+                    hours: "Early morning to late evening",
+                    rating: "Not available",
+                },
+            ],
+            Calapan: [
+        {
+            name: "San Rafael",
+            location: "San Rafael, Calapan City, Orriental Mindoro",
+            hours: null,
+            rating: "⭐⭐⭐⭐",
+        },
+        {
+            name: "SR Villa Rosario",
+            location: "Villa Rosario, San Rafael, Calapan City, Orriental Mindoro",
+            hours: "6:00 AM to 6:00 PM",
+            rating: "⭐⭐⭐⭐⭐",
+        },
+        {
+            name: "SR Toog (lower)",
+            location: "Lower Toog, San Rafael, Calapan City, Orriental Mindoro",
+            hours: null,
+            rating: "⭐⭐⭐⭐",
+        },
+        {
+            name: "SR Toog (upper)",
+            location: "Upper Toog, San Rafael, Calapan City, Orriental Mindoro",
+            hours: null,
+            rating: "⭐⭐⭐",
+        },
+        {
+            name: "SR Bintulagan",
+            location: "Bintulagan, San Rafael, Calapan City, Orriental Mindoro",
+            hours: "7:00 AM to 7:00 PM",
+            rating: "⭐⭐⭐⭐",
+        },
+        {
+            name: "Boundary/Morente",
+            location: "Boundary of Morente and San Rafael, Calapan City, Orriental Mindoro",
+            hours: null,
+            rating: "⭐⭐⭐⭐",
+        },
+        {
+            name: "SR Dike",
+            location: "Dike Area, San Rafael, Calapan City, Orriental Mindoro",
+            hours: "Open 24 hours",
+            rating: "⭐⭐⭐⭐⭐",
+        },
+        {
+            name: "Happy Valley Upper",
+            location: "Upper Happy Valley, San Rafael, Calapan City, Orriental Mindoro",
+            hours: "6:00 AM to 8:00 PM",
+            rating: "⭐⭐⭐⭐",
+        },
+        {
+            name: "Happy Valley Lower",
+            location: "Lower Happy Valley, San Rafael, Calapan City, Orriental Mindoro",
+            hours: null,
+            rating: "⭐⭐⭐⭐⭐",
+        },
+        {
+            name: "Maraska",
+            location: "Maraska, San Rafael, Calapan City, Orriental Mindoro",
+            hours: "5:30 AM to 10:00 PM",
+            rating: "⭐⭐⭐⭐",
+        },
+        {
+            name: "San Vicente",
+            location: "San Vicente, Calapan City, Orriental Mindoro",
+            hours: "Open 24 hours",
+            rating: "⭐⭐⭐⭐⭐",
+        },
+    ],
+        };
+    
+        function showTerminals() {
+            const location = document.getElementById("location").value;
+            const terminalsContainer = document.getElementById("terminals-container");
+            const terminalsDiv = document.getElementById("terminals");
+            const terminalInfo = document.getElementById("terminal-info");
+            const terminalDetails = document.getElementById("terminal-details");
+    
+            terminalsContainer.style.display = location ? "block" : "none";
+            terminalsDiv.innerHTML = "";
+    
+            if (location && terminalsData[location]) {
+                terminalsData[location].forEach((terminal, index) => {
+                    const terminalDiv = document.createElement("div");
+                    terminalDiv.innerHTML = `
+                        <input type="checkbox" id="terminal-${index}" onchange="toggleTerminalInfo(${index}, '${location}')">
+                        <label for="terminal-${index}">${terminal.name}</label>
+                    `;
+                    terminalsDiv.appendChild(terminalDiv);
+                });
+            }
+    
+            terminalInfo.style.display = "none";
+            terminalDetails.innerHTML = "";
+        }
+    
+        function toggleTerminalInfo(index, location) {
+            const terminalInfo = document.getElementById("terminal-info");
+            const terminalDetails = document.getElementById("terminal-details");
+            const checkbox = document.getElementById(`terminal-${index}`);
+    
+            if (checkbox.checked) {
+                const terminal = terminalsData[location][index];
+                const terminalDetailDiv = document.createElement("div");
+                terminalDetailDiv.id = `terminal-detail-${index}`;
+                terminalDetailDiv.innerHTML = `
+                    <strong>${terminal.name}</strong><br>
+                    Location: ${terminal.location}<br>
+                    Hours: ${terminal.hours || "Not available"}<br>
+                    Rating: ${terminal.rating}<hr>
+                `;
+                terminalDetails.appendChild(terminalDetailDiv);
+            } else {
+                const terminalDetailDiv = document.getElementById(`terminal-detail-${index}`);
+                terminalDetailDiv?.remove();
+            }
+    
+            terminalInfo.style.display = terminalDetails.innerHTML ? "block" : "none";
+        }
+
+
+    const fareTable = {
+        "San Rafael": { regular: 35.00, discount: 28.00 },
+        "SR Villa Rosario": { regular: 33.00, discount: 26.00 },
+        "SR Toog (lower)": { regular: 35.00, discount: 28.00 },
+        "SR Toog (upper)": { regular: 41.00, discount: 33.00 },
+        "SR Bintulagan": { regular: 39.00, discount: 31.00 },
+        "Boundary/Morente": { regular: 39.00, discount: 31.00 },
+        "SR Dike": { regular: 37.00, discount: 30.00 },
+        "Happy Valley Upper": { regular: 41.00, discount: 33.00 },
+        "Happy Valley Lower": { regular: 41.00, discount: 33.00 },
+        "Maraska": { regular: 41.00, discount: 33.00 },
+        "San Vicente": { regular: 43.00, discount: 34.00 },
+        // Add other destinations here
+    };
+
+    function calculateFare() {
+        const destination = document.getElementById("destination").value;
+        const passengerType = document.getElementById("passengerType").value;
+        const fareResult = document.getElementById("fareResult");
+        const fareDetails = document.getElementById("fareDetails");
+
+        if (!destination || !passengerType) {
+            fareResult.style.display = "none";
+            alert("Please select both a destination and passenger type.");
+            return;
+        }
+
+        const fare = fareTable[destination];
+        if (!fare) {
+            fareResult.style.display = "none";
+            alert("Invalid destination selected.");
+            return;
+        }
+
+        let finalFare;
+        if (passengerType === "Regular") {
+            finalFare = fare.regular;
+        } else {
+            finalFare = fare.discount;
+        }
+
+        fareDetails.innerHTML = `
+            <strong>Destination:</strong> ${destination}<br>
+            <strong>Passenger Type:</strong> ${passengerType}<br>
+            <strong>Exact Fare:</strong> Php ${finalFare.toFixed(2)}
+        `;
+        fareResult.style.display = "block";
+    }
+    </script>
+
+    <footer>
+        <p>&copy; 2025 TODA Information Portal. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
